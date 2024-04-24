@@ -6,6 +6,9 @@ Adjustment to handle connection timeout and reset events from client miners.
 
 ![](./assets/images/console-log.png)
 
+
+![](./assets/images/console-log2.png)
+
 ## Installation
 
 ```bash
