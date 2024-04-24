@@ -123,11 +123,14 @@ export class BitcoinRpcService implements OnModuleInit {
                                 capabilities: ['serverlist', 'proposal'],
                             },
                         });
+                        await this.rpcBlockService.saveBlock(
+                          blockHeight,
+                          JSON.stringify(result),
+                        );
                     } catch (e) {
                         console.error('RETRY - getblocktemplate:', e.message);
                     }
                 }
-                await this.rpcBlockService.saveBlock(blockHeight, JSON.stringify(result));
 
             } else {
                 //wait for block
