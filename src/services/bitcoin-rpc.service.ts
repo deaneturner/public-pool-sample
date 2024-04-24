@@ -152,13 +152,14 @@ export class BitcoinRpcService implements OnModuleInit {
             console.error('Error getmininginfo', e.message);
             return null;
         }
+
     }
 
     public async SUBMIT_BLOCK(hexdata: string): Promise<string> {
-        let response = 'unknown';
+        let response: string = 'unknown';
         try {
             response = await this.client.submitblock({
-                hexdata,
+                hexdata
             });
             if (response == null) {
                 response = 'SUCCESS!';
@@ -171,5 +172,7 @@ export class BitcoinRpcService implements OnModuleInit {
             console.log(`BLOCK SUBMISSION RESPONSE ERROR: ${e}`);
         }
         return response;
+
     }
 }
+
