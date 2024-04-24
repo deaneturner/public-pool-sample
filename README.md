@@ -2,6 +2,10 @@
 
 A Nestjs and Typescript Bitcoin stratum mining server.
 
+Adjustment to handle connection timeout and reset events from client miners.
+
+![](./assets/images/console-log.png)
+
 ## Installation
 
 ```bash
