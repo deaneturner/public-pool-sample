@@ -10,6 +10,7 @@ import { IMiningInfo } from '../models/bitcoin-rpc/IMiningInfo';
 
 @Injectable()
 export class BitcoinRpcService implements OnModuleInit {
+
     private blockHeight = 0;
     private client: RPCClient;
     private _newBlock$: BehaviorSubject<IMiningInfo> = new BehaviorSubject(
@@ -22,9 +23,10 @@ export class BitcoinRpcService implements OnModuleInit {
     );
 
     constructor(
-      private readonly configService: ConfigService,
-      private rpcBlockService: RpcBlockService,
-    ) {}
+        private readonly configService: ConfigService,
+        private rpcBlockService: RpcBlockService
+    ) {
+    }
 
     async onModuleInit() {
         const url = this.configService.get('BITCOIN_RPC_URL');
@@ -38,18 +40,16 @@ export class BitcoinRpcService implements OnModuleInit {
 
         this.client = new RPCClient({ url, port, timeout, user, pass });
 
-        this.client.getrpcinfo().then(
-          (res) => {
-              console.log('Bitcoin RPC connected');
-          },
-          () => {
-              console.error('Could not reach RPC host');
-          },
-        );
+        this.client.getrpcinfo().then((res) => {
+            console.log('Bitcoin RPC connected');
+        }, () => {
+            console.error('Could not reach RPC host');
+        });
 
         if (this.configService.get('BITCOIN_ZMQ_HOST')) {
             console.log('Using ZMQ');
-            const sock = new zmq.Subscriber();
+            const sock = new zmq.Subscriber;
+
 
             sock.connectTimeout = 1000;
             sock.events.on('connect', () => {
@@ -64,14 +64,15 @@ export class BitcoinRpcService implements OnModuleInit {
             // Don't await this, otherwise it will block the rest of the program
             this.listenForNewBlocks(sock);
             await this.pollMiningInfo();
+
         } else {
-            setInterval(this.pollMiningInfo.bind(this), timeoutPollMiningInfo);
+            setInterval(this.pollMiningInfo.bind(this), 500);
         }
     }
 
     private async listenForNewBlocks(sock: zmq.Subscriber) {
         for await (const [topic, msg] of sock) {
-            console.log('New Block');
+            console.log("New Block");
             await this.pollMiningInfo();
         }
     }
@@ -79,7 +80,7 @@ export class BitcoinRpcService implements OnModuleInit {
     public async pollMiningInfo() {
         const miningInfo = await this.getMiningInfo();
         if (miningInfo != null && miningInfo.blocks > this.blockHeight) {
-            console.log('block height change');
+            console.log("block height change");
             this._newBlock$.next(miningInfo);
             this.blockHeight = miningInfo.blocks;
         }
@@ -87,7 +88,7 @@ export class BitcoinRpcService implements OnModuleInit {
 
     private async waitForBlock(blockHeight: number): Promise<IBlockTemplate> {
         while (true) {
-            await new Promise((r) => setTimeout(r, 100));
+            await new Promise(r => setTimeout(r, 100));
 
             const block = await this.rpcBlockService.getBlock(blockHeight);
             if (block != null && block.data != null) {
@@ -101,18 +102,17 @@ export class BitcoinRpcService implements OnModuleInit {
     public async getBlockTemplate(blockHeight: number): Promise<IBlockTemplate> {
         let result: IBlockTemplate;
         try {
+
             const block = await this.rpcBlockService.getBlock(blockHeight);
 
             if (block != null && block.data != null) {
                 return Promise.resolve(JSON.parse(block.data));
             } else if (block == null) {
+
                 if (process.env.NODE_APP_INSTANCE != null) {
                     // There is a unique constraint on the block height so if another process tries to lock, it'll throw
                     try {
-                        await this.rpcBlockService.lockBlock(
-                          blockHeight,
-                          process.env.NODE_APP_INSTANCE,
-                        );
+                        await this.rpcBlockService.lockBlock(blockHeight, process.env.NODE_APP_INSTANCE);
                     } catch (e) {
                         result = await this.waitForBlock(blockHeight);
                     }
@@ -138,14 +138,14 @@ export class BitcoinRpcService implements OnModuleInit {
                     }
                 }
 
-                await this.rpcBlockService.saveBlock(
-                  blockHeight,
-                  JSON.stringify(result),
-                );
             } else {
                 //wait for block
                 result = await this.waitForBlock(blockHeight);
+
             }
+
+
+
         } catch (e) {
             console.error('Error getblocktemplate:', e.message);
             throw new Error('Error getblocktemplate');
@@ -177,10 +177,10 @@ export class BitcoinRpcService implements OnModuleInit {
     }
 
     public async SUBMIT_BLOCK(hexdata: string): Promise<string> {
-        let response = 'unknown';
+        let response: string = 'unknown';
         try {
             response = await this.client.submitblock({
-                hexdata,
+                hexdata
             });
             if (response == null) {
                 response = 'SUCCESS!';
@@ -193,5 +193,7 @@ export class BitcoinRpcService implements OnModuleInit {
             console.log(`BLOCK SUBMISSION RESPONSE ERROR: ${e}`);
         }
         return response;
+
     }
 }
+
