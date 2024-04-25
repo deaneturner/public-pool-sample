@@ -54,11 +54,6 @@ export class StratumV1Service implements OnModuleInit {
         this.addressSettingsService,
       );
 
-      socket.on('connect', async (event) => {
-        console.time('client connect time');
-        console.log('Client Socket Connect', event);
-      });
-
       socket.on('close', async (hadError: boolean) => {
         if (client.extraNonceAndSessionId != null) {
           // Handle socket disconnection
@@ -91,7 +86,6 @@ export class StratumV1Service implements OnModuleInit {
     });
 
     server.listen(process.env.STRATUM_PORT, () => {
-      console.time('client connect time');
       console.log(
         `Stratum server is listening on port ${process.env.STRATUM_PORT}`,
       );
