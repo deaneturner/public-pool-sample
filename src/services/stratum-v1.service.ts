@@ -61,6 +61,7 @@ export class StratumV1Service implements OnModuleInit {
           console.log(
             `Client ${client.extraNonceAndSessionId} disconnected, hadError?:${hadError}`,
           );
+          console.time('client connect time');
         }
       });
 
@@ -86,6 +87,7 @@ export class StratumV1Service implements OnModuleInit {
     });
 
     server.listen(process.env.STRATUM_PORT, () => {
+      console.time('client connect time');
       console.log(
         `Stratum server is listening on port ${process.env.STRATUM_PORT}`,
       );

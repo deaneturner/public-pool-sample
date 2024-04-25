@@ -134,7 +134,6 @@ export class StratumV1Client {
               this.clientStatisticsService,
             );
             this.extraNonceAndSessionId = this.getRandomHexString();
-            console.time('client connect time');
             console.log(
               `New client ID: : ${this.extraNonceAndSessionId}, ${this.socket.remoteAddress}:${this.socket.remotePort}`,
             );
