@@ -83,10 +83,13 @@ export class StratumV1Service implements OnModuleInit {
           );
         }
         console.log('cleanup client socket: ', error);
+        console.timeEnd('client connect time');
         socket.end();
         socket.destroy();
       });
     });
+
+    console.time('client connect time');
 
     server.listen(process.env.STRATUM_PORT, () => {
       console.log(
