@@ -55,6 +55,7 @@ export class StratumV1Service implements OnModuleInit {
       );
 
       socket.on('connect', async (event) => {
+        console.time('client connect time');
         console.log('Client Socket Connect', event);
       });
 
@@ -89,9 +90,8 @@ export class StratumV1Service implements OnModuleInit {
       });
     });
 
-    console.time('client connect time');
-
     server.listen(process.env.STRATUM_PORT, () => {
+      console.time('client connect time');
       console.log(
         `Stratum server is listening on port ${process.env.STRATUM_PORT}`,
       );
