@@ -75,6 +75,7 @@ export class StratumV1Service implements OnModuleInit {
       });
 
       socket.on('error', async (error: Error) => {
+        // Handle Global Fatal Runtime Error (error thrown outside of try/catch)
         if (client.extraNonceAndSessionId != null) {
           await client.destroy();
           console.log(
