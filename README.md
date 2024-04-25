@@ -6,8 +6,6 @@ PR describes modifications to handle socket connections and new logging.
 
 ![](./assets/images/console-log.png)
 
-![](./assets/images/console-log2.png)
-
 ## Installation
 
 ```bash
