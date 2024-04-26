@@ -151,16 +151,15 @@ export class BitcoinRpcService implements OnModuleInit {
 
   public async getMiningInfo(): Promise<IMiningInfo> {
     let miningInfo: IMiningInfo;
-    let counter = 0;
-    while (!miningInfo && counter < 5) {
+    while (!miningInfo) {
       await new Promise((r) => setTimeout(r, 100));
       try {
         miningInfo = await this.client.getmininginfo();
       } catch (e) {
         console.error('RETRY - getmininginfo: ', e.message);
       }
-      counter++;
     }
+    // keep track of the current mining info purely for logging purposes
     if (
       !this.currentMiningInfo ||
       miningInfo.blocks !== this.currentMiningInfo.blocks
