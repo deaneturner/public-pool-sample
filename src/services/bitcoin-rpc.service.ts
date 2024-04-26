@@ -15,6 +15,7 @@ export class BitcoinRpcService implements OnModuleInit {
   private _newBlock$: BehaviorSubject<IMiningInfo> = new BehaviorSubject(
     undefined,
   );
+  private currentMiningInfo: IMiningInfo;
   public newBlock$ = this._newBlock$.pipe(
     filter((block) => block != null),
     shareReplay({ refCount: true, bufferSize: 1 }),
@@ -31,6 +32,9 @@ export class BitcoinRpcService implements OnModuleInit {
     const pass = this.configService.get('BITCOIN_RPC_PASSWORD');
     const port = parseInt(this.configService.get('BITCOIN_RPC_PORT'));
     const timeout = parseInt(this.configService.get('BITCOIN_RPC_TIMEOUT'));
+    const timeoutPollMiningInfo = parseInt(
+      this.configService.get('BITCOIN_POLL_MINING_INFO_TIMEOUT'),
+    );
 
     this.client = new RPCClient({ url, port, timeout, user, pass });
 
@@ -61,7 +65,7 @@ export class BitcoinRpcService implements OnModuleInit {
       this.listenForNewBlocks(sock);
       await this.pollMiningInfo();
     } else {
-      setInterval(this.pollMiningInfo.bind(this), 500);
+      setInterval(this.pollMiningInfo.bind(this), timeoutPollMiningInfo);
     }
   }
 
@@ -114,17 +118,25 @@ export class BitcoinRpcService implements OnModuleInit {
           }
         }
 
-        result = await this.client.getblocktemplate({
-          template_request: {
-            rules: ['segwit'],
-            mode: 'template',
-            capabilities: ['serverlist', 'proposal'],
-          },
-        });
-        await this.rpcBlockService.saveBlock(
-          blockHeight,
-          JSON.stringify(result),
-        );
+        while (!result) {
+          await new Promise((r) => setTimeout(r, 100));
+
+          try {
+            result = await this.client.getblocktemplate({
+              template_request: {
+                rules: ['segwit'],
+                mode: 'template',
+                capabilities: ['serverlist', 'proposal'],
+              },
+            });
+            await this.rpcBlockService.saveBlock(
+              blockHeight,
+              JSON.stringify(result),
+            );
+          } catch (e) {
+            console.error('RETRY - getblocktemplate:', e.message);
+          }
+        }
       } else {
         //wait for block
         result = await this.waitForBlock(blockHeight);
@@ -138,12 +150,24 @@ export class BitcoinRpcService implements OnModuleInit {
   }
 
   public async getMiningInfo(): Promise<IMiningInfo> {
-    try {
-      return await this.client.getmininginfo();
-    } catch (e) {
-      console.error('Error getmininginfo', e.message);
-      return null;
+    let miningInfo: IMiningInfo;
+    while (!miningInfo) {
+      await new Promise((r) => setTimeout(r, 100));
+      try {
+        miningInfo = await this.client.getmininginfo();
+      } catch (e) {
+        console.error('RETRY - getmininginfo: ', e.message);
+      }
     }
+    // keep track of the current mining info purely for logging purposes
+    if (
+      !this.currentMiningInfo ||
+      miningInfo.blocks !== this.currentMiningInfo.blocks
+    ) {
+      this.currentMiningInfo = miningInfo;
+      console.log(`getMiningInfo: block height ${miningInfo.blocks}`);
+    }
+    return miningInfo;
   }
 
   public async SUBMIT_BLOCK(hexdata: string): Promise<string> {

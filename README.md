@@ -2,6 +2,14 @@
 
 A Nestjs and Typescript Bitcoin stratum mining server.
 
+PR describes modifications to handle socket connections and new logging.
+
+![](./assets/images/console-log3.png)
+
+![](./assets/images/console-log.png)
+
+![](./assets/images/console-log2.png)
+
 ## Installation
 
 ```bash
@@ -70,6 +78,11 @@ Run container:
 ```bash
 $ docker compose up -d
 ```
+Build and run container:
+
+```bash
+$ docker-compose up --build -d
+```
 
 The docker-compose binds to `127.0.0.1` by default. To expose the Stratum services on your server change:
 ```diff
@@ -87,3 +100,8 @@ rpcallowip=172.16.0.0/12
 ```
 
 to your bitcoin.conf.
+
+Terminal Logs:
+```bash
+docker logs -f public-pool
+```

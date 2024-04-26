@@ -37,6 +37,7 @@ export class StratumV1Service implements OnModuleInit {
   }
 
   private startSocketServer() {
+    console.log('Stratum-V1-Service: Starting Socket Server');
     const server = new Server(async (socket: Socket) => {
       //5 min
       socket.setTimeout(1000 * 60 * 5);
@@ -60,6 +61,7 @@ export class StratumV1Service implements OnModuleInit {
           console.log(
             `Client ${client.extraNonceAndSessionId} disconnected, hadError?:${hadError}`,
           );
+          console.time('client connect time');
         }
       });
 
@@ -69,12 +71,23 @@ export class StratumV1Service implements OnModuleInit {
         socket.destroy();
       });
 
-      socket.on('error', async (error: Error) => {});
-
-      //   //console.log(`Client disconnected, socket error,  ${client.extraNonceAndSessionId}`);
+      socket.on('error', async (error: Error) => {
+        // Handle Global Fatal Runtime Error (error thrown outside of try/catch)
+        if (client.extraNonceAndSessionId != null) {
+          await client.destroy();
+          console.log(
+            `Client disconnected, socket error,  ${client.extraNonceAndSessionId}`,
+          );
+        }
+        console.log('cleanup client socket: ', error);
+        console.timeEnd('client connect time');
+        socket.end();
+        socket.destroy();
+      });
     });
 
     server.listen(process.env.STRATUM_PORT, () => {
+      console.time('client connect time');
       console.log(
         `Stratum server is listening on port ${process.env.STRATUM_PORT}`,
       );
