@@ -1,4 +1,4 @@
-## Description
+# Description
 
 A Nestjs and Typescript Bitcoin stratum mining server.
 
